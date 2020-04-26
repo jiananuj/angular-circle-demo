@@ -1,35 +1,26 @@
-version: 2
+version: 2.1
+orbs:
+  node: circleci/node@1.1.6
 jobs:
-  build:
+  build-and-test:
+    working_directory: ~/angular-circle-demo
     docker:
-      - image: circleci/node:7.10
-
+      - image: circleci/node:12-browsers
     steps:
       - checkout
-
       - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "package.json"}}
-            - v1-dependencies-
-
+          key: angular-circle-demo-{{ .Branch }}-{{ checksum "package-lock.json"}}
       - run: npm install
-
       - save_cache:
+          key: angular-circle-demo-{{ .Branch }}-{{ checksum "package-lock.json"}}
           paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json"}}
-  test:
-    docker:
-      - image: circleci/node:7.10
-    steps:
-      - run: npm test
-
-workflow:
-  version: 2
-
-  deployment_process:
-    jobs:
-      - build
-      - test:
-        requires:
-          - build
+            - "nodes_modules"
+      - run: npm run test -- --no-watch --no-progress --browsers=ChromeHeadlessCI
+      - run: npm run build
+      - deploy:
+          command: |
+            ./node_modules/.bin/firebase deploy --token=$FIREBASE_TOKEN
+workflows:
+    build-and-test:
+      jobs:
+        - build-and-test
