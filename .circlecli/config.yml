@@ -1,9 +1,15 @@
 version:2
 jobs:
 build:
+branches:
+only:
+- master
+ignore:
+- dev
 docker:
 - image: 'circleci/node:8'
 working_directory: ~/repo
+
 steps:
 - checkout
 - restore_cache:
@@ -20,4 +26,4 @@ name: 'Build Project'
 command: 'npm run build'
 - run:
 name: 'Deploy to Firebase Hosting'
-command: './node_modules/.bin/firebase deploy --token=$FIREBASE_TOKEN
+command: './node_modules/.bin/firebase deploy --token=$FIREBASE_TOKEN'
